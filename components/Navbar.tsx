@@ -36,6 +36,20 @@ const NAV_CONFIG = {
       roles: ["PROFESSOR"],
     },
   ],
+  adminOnly: [
+    {
+      href: "/admin/register-org",
+      label: "Cadastrar ORG",
+      icon: "🏢",
+      roles: ["ADMIN"],
+    },
+    {
+      href: "/admin/approvals",
+      label: "Aprovações",
+      icon: "✅",
+      roles: ["ADMIN"],
+    },
+  ],
 };
 
 export function Navbar() {
@@ -96,15 +110,19 @@ export function Navbar() {
     const professorItems =
       user?.role === "PROFESSOR" ? NAV_CONFIG.professorOnly : [];
 
-    return [...baseItems, ...professorItems];
+    const adminItems = user?.role === "ADMIN" ? NAV_CONFIG.adminOnly : [];
+
+    return [...baseItems, ...professorItems, ...adminItems];
   };
 
   const visibleItems = getVisibleItems();
 
   // ✅ Verifica se link está ativo
   const isActiveLink = (href: string) => {
-    if (href === "/") return pathname === "/";
-    return pathname.startsWith(href);
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname === href; //|| pathname.startsWith(href + "/");
   };
 
   return (
@@ -163,7 +181,11 @@ export function Navbar() {
                         {user?.name || "Usuário"}
                       </p>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {user?.role === "PROFESSOR" ? "Professor" : "Estudante"}
+                        {user?.role === "ADMIN"
+                          ? "Admin"
+                          : user?.role === "PROFESSOR"
+                            ? "Professor"
+                            : "Estudante"}
                       </p>
                     </div>
                     <svg
@@ -220,9 +242,11 @@ export function Navbar() {
                                 : "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
                             }`}
                           >
-                            {user?.role === "PROFESSOR"
-                              ? "👨‍🏫 Professor"
-                              : "🎓 Estudante"}
+                            {user?.role === "ADMIN"
+                              ? "⚙️ Administrador"
+                              : user?.role === "PROFESSOR"
+                                ? "👨‍🏫 Professor"
+                                : "🎓 Estudante"}
                           </span>
                         </div>
                       </div>
