@@ -10,8 +10,13 @@ import {
   Users,
   CheckCircle,
   Tag,
+  Video,
+  Lock,
+  XCircle,
 } from "lucide-react";
 import { EventRegistrationButton } from "@/components/events/EventRegistrationButton";
+import { Event } from "@/types/event";
+import { JSX } from "react";
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -40,7 +45,7 @@ export default async function EventDetails({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  let event;
+  let event: Event;
 
   try {
     event = await eventService.getEventById(id);
@@ -57,7 +62,111 @@ export default async function EventDetails({
     day: "numeric",
   });
 
+  const now = new Date();
+
+  const todayStr = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  }).format(now);
+
+  const currentTimeStr = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Sao_Paulo",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(now);
+
+  const isPastDate = event.date < todayStr;
+  const isPastTime = event.date === todayStr && event.endTime < currentTimeStr;
+  const isPast = isPastDate || isPastTime;
+  const isToday = event.date === todayStr;
+
   const spotsLeft = event.capacity - event.registered;
+  const isFull = spotsLeft <= 0;
+
+  // TODO Ajustar isso quando o backend estiver pronto
+  const isCanceled =
+    // @ts-expect-error - Ajustar isso quando o backend estiver pronto
+    event.status === "CANCELADO" || event.status === "CANCELLED";
+
+  const handleTopEventTag = (
+    isCanceled: boolean,
+    isPast: boolean,
+    isFull: boolean,
+    event: Event,
+  ): JSX.Element | null => {
+    if (isCanceled) {
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800">
+          <XCircle className="w-3.5 h-3.5 mr-1.5" />
+          Cancelado
+        </span>
+      );
+    }
+    if (isPast) {
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-zinc-200 text-zinc-700 border border-zinc-300 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">
+          <Clock className="w-3.5 h-3.5 mr-1.5" />
+          Encerrado
+        </span>
+      );
+    }
+    if (isFull && !event.isRegistered) {
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800">
+          <Users className="w-3.5 h-3.5 mr-1.5" />
+          Esgotado
+        </span>
+      );
+    }
+    return null;
+  };
+
+  const handleRegistationButton = (
+    isCanceled: boolean,
+    isPast: boolean,
+    isFull: boolean,
+    event: Event,
+  ): JSX.Element => {
+    if (isCanceled) {
+      return (
+        <button
+          disabled
+          className="w-full py-3 px-4 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 rounded-md font-medium cursor-not-allowed"
+        >
+          Evento Cancelado
+        </button>
+      );
+    }
+
+    if (isPast) {
+      return (
+        <button
+          disabled
+          className="w-full py-3 px-4 bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500 rounded-md font-medium cursor-not-allowed"
+        >
+          Inscrições Encerradas
+        </button>
+      );
+    }
+
+    if (isFull && !event.isRegistered) {
+      return (
+        <button
+          disabled
+          className="w-full py-3 px-4 bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 rounded-md font-medium cursor-not-allowed"
+        >
+          Vagas Esgotadas
+        </button>
+      );
+    }
+
+    return (
+      <EventRegistrationButton
+        eventId={event.id}
+        isRegistered={event.isRegistered}
+        organizerEmail={event.organizerEmail}
+      />
+    );
+  };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black font-sans py-8">
@@ -79,6 +188,8 @@ export default async function EventDetails({
                 >
                   {event.category}
                 </span>
+
+                {handleTopEventTag(isCanceled, isPast, isFull, event)}
 
                 {event.isRegistered && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
@@ -161,6 +272,35 @@ export default async function EventDetails({
               </h3>
 
               <div className="space-y-6">
+                {event.onlineLink && !isPast && !isCanceled && (
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-lg">
+                    <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-2">
+                      Transmissão Online
+                    </p>
+
+                    {isToday && event.isRegistered ? (
+                      <a
+                        href={event.onlineLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors shadow-sm"
+                      >
+                        <Video className="w-4 h-4" />
+                        Acessar Reunião
+                      </a>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-3 px-4 bg-blue-100/50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-md border border-dashed border-blue-300 dark:border-blue-700 text-center">
+                        <Lock className="w-4 h-4 mb-1" />
+                        <span className="text-xs font-medium">
+                          {event.isRegistered
+                            ? "O link será liberado aqui no dia do evento."
+                            : "Inscreva-se para acessar o link no dia do evento."}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-4">
                   <div className="p-2 bg-zinc-100 dark:bg-zinc-800 rounded-lg h-fit">
                     <Calendar className="w-5 h-5 text-zinc-500" />
@@ -200,9 +340,11 @@ export default async function EventDetails({
                     <p className="text-zinc-900 dark:text-white font-medium">
                       {event.location}
                     </p>
-                    <p className="text-sm text-zinc-500 capitalize">
-                      {event.campus}
-                    </p>
+                    {!event.onlineLink && (
+                      <p className="text-sm text-zinc-500 capitalize">
+                        {event.campus}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -235,7 +377,9 @@ export default async function EventDetails({
                       {event.registered} / {event.capacity} inscritos
                     </p>
                     <p className="text-sm text-zinc-500">
-                      {spotsLeft} vagas restantes
+                      {spotsLeft > 0
+                        ? `${spotsLeft} vagas restantes`
+                        : "Nenhuma vaga restante"}
                     </p>
                   </div>
                 </div>
@@ -243,11 +387,7 @@ export default async function EventDetails({
 
               <hr className="my-6 border-zinc-200 dark:border-zinc-800" />
 
-              <EventRegistrationButton
-                eventId={event.id}
-                isRegistered={event.isRegistered}
-                organizerEmail={event.organizerEmail}
-              />
+              {handleRegistationButton(isCanceled, isPast, isFull, event)}
             </div>
           </div>
         </div>
