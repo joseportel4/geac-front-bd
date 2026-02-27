@@ -110,3 +110,7 @@ export async function getUserOrganizers(): Promise<OrganizerResponseDTO[]> {
   //     return [];
   //   }
 }
+
+// export async function getSpeakers() {
+//   return fetchDomain("/speakers");
+// }
