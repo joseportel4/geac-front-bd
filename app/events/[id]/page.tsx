@@ -39,7 +39,6 @@ const getCategoryColor = (category: string) => {
   }
 };
 
-
 export default async function EventDetails({
   params,
 }: {
@@ -50,7 +49,7 @@ export default async function EventDetails({
 
   try {
     event = await eventService.getEventById(id);
-    console.log(event.status)
+    console.log(event.status);
   } catch (error) {
     console.error(error);
     return notFound();
@@ -85,7 +84,7 @@ export default async function EventDetails({
   const isFull = spotsLeft <= 0;
 
   // TODO Ajustar isso quando o backend estiver pronto
-  const isCanceled =   event.status === "CANCELLED";
+  const isCanceled = event.status === "CANCELLED";
   const isCompleted = event.status === "COMPLETED";
 
   const handleTopEventTag = (
@@ -209,7 +208,13 @@ export default async function EventDetails({
                   {event.category}
                 </span>
 
-                {handleTopEventTag(isCanceled,isCompleted, isPast, isFull, event)}
+                {handleTopEventTag(
+                  isCanceled,
+                  isCompleted,
+                  isPast,
+                  isFull,
+                  event,
+                )}
 
                 {event.isRegistered && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800">
@@ -407,7 +412,13 @@ export default async function EventDetails({
 
               <hr className="my-6 border-zinc-200 dark:border-zinc-800" />
 
-              {handleRegistationButton(isCanceled, isPast,isCompleted ,isFull, event)}
+              {handleRegistationButton(
+                isCanceled,
+                isPast,
+                isCompleted,
+                isFull,
+                event,
+              )}
             </div>
           </div>
         </div>

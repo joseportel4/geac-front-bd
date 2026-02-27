@@ -57,15 +57,15 @@ export default function EventsContent({
 
       if (activeTab === "proximos") {
         matchesTab = event.date >= today && event.status != "CANCELLED";
-        
       } else if (activeTab === "disponiveis") {
-        matchesTab = event.registered < event.capacity &&
-        event.status != "CANCELLED" &&
-        event.status != "COMPLETED";
-      } else if(activeTab === "cancelados"){
-        matchesTab = event.status === "CANCELLED"
-      } else if(activeTab === "finalizados"){
-        matchesTab = event.status === "COMPLETED"
+        matchesTab =
+          event.registered < event.capacity &&
+          event.status != "CANCELLED" &&
+          event.status != "COMPLETED";
+      } else if (activeTab === "cancelados") {
+        matchesTab = event.status === "CANCELLED";
+      } else if (activeTab === "finalizados") {
+        matchesTab = event.status === "COMPLETED";
       }
 
       return (
