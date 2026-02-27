@@ -23,7 +23,7 @@ const NAV_CONFIG = {
       roles: ["STUDENT", "PROFESSOR", "ORGANIZER"],
     },
     {
-      href: "/certificados",
+      href: "/certificates",
       label: "Certificados",
       icon: "🎓",
       roles: ["STUDENT", "PROFESSOR", "ORGANIZER"],
